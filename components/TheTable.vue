@@ -1,6 +1,28 @@
 <template>
 	<div>
-		 <TheFilter />
+		<div class="filter">
+			<div>
+				<select v-model="param">
+					<option value=" ">Параметр</option>
+					<option value="name" >Название</option>
+					<option value="qvontity">Количество</option>
+					<option value="distanse">Расстояние</option>
+				</select>
+			</div>
+			<div>
+				<select v-model="op"  placeholder="Значение">
+					<option value=" ">Условие</option>
+					<option value=">">Больше</option>
+					<option value="<">Меньше</option>
+					<option value="=">Равно</option>
+				</select>
+			</div>
+		<div class="filter__param-form">
+			<input type="text" placeholder="Значение" v-model="valueToFilter">
+		</div>
+		<button type="submit" @click="applyFilter">Применить</button>
+		<button @click="reset" v-show="res">Сбросить</button>
+	</div>
 		<div style="height:800px">
 			<div class="table">
 				<div class="table__title">
@@ -9,7 +31,7 @@
 					<div>Количество</div>
 					<div>Расстояние</div>
 				</div>
-				<div class="table__rec" v-for="(rec, index) in part" :key="index" >
+				<div class="table__rec" v-for="(rec, index) in part" :key="index">
 					<div>{{ rec.date }}</div>
 					<div>{{ rec.name }}</div>
 					<div>{{ rec.qvontity }}</div>
@@ -17,7 +39,7 @@
 				</div>
 			</div>
 		</div>
-		<button @click="back">назад</button> {{ pagin / 2 + 1 }} <button @click="next">вперед</button>
+		<button @click="back">назад</button> {{ pagin / 10 + 1 }} <button @click="next">вперед</button>
 	</div>
 </template>
 
@@ -27,42 +49,88 @@ export default {
 	data() {
 		return {
 			pagin: 0,
-			part:[],
+			valueToFilter: '',
+			param: ' ',
+			op: ' ',
+			res: false,
+			resultFilter: [],
 			schedule: [
-				{date: 1, name: 1, qvontity: 8, distanse: 600},
-				{date: 2, name: 2, qvontity: 6, distanse: 500},
-				{date: 3, name: 3, qvontity: 2, distanse: 800},
-				{date: 4, name: 4, qvontity: 3, distanse: 340},
-				{date: 5, name: 6, qvontity: 4, distanse: 450},
-				{date: 6, name: 5, qvontity: 8, distanse: 600},
-				{date: 7, name: 6, qvontity: 4, distanse: 450},
-				{date: 8, name: 15, qvontity: 1, distanse: 622},
+				{date: 1, name: 132, qvontity: 8, distanse: 6000},
+				{date: 2, name: 454, qvontity: 6, distanse: 5000},
+				{date: 3, name: 344, qvontity: 2, distanse: 8000},
+				{date: 4, name: 433, qvontity: 3, distanse: 3400},
+				{date: 5, name: 622, qvontity: 4, distanse: 4500},
+				{date: 6, name: 523, qvontity: 8, distanse: 6000},
+				{date: 7, name: 622, qvontity: 4, distanse: 4500},
+				{date: 8, name: 125, qvontity: 1, distanse: 6220},
+				{date: 9, name: 132, qvontity: 8, distanse: 6000},
+				{date: 10, name: 454, qvontity: 6, distanse: 5000},
+				{date: 11, name: 344, qvontity: 2, distanse: 8000},
+				{date: 12, name: 433, qvontity: 3, distanse: 3400},
+				{date: 13, name: 622, qvontity: 4, distanse: 4500},
+				{date: 14, name: 523, qvontity: 8, distanse: 6000},
+				{date: 15, name: 622, qvontity: 4, distanse: 4500},
+				{date: 16, name: 125, qvontity: 1, distanse: 6220},
+				{date: 17, name: 132, qvontity: 8, distanse: 6000},
+				{date: 18, name: 454, qvontity: 6, distanse: 5000},
+				{date: 19, name: 344, qvontity: 2, distanse: 8000},
+				{date: 20, name: 433, qvontity: 3, distanse: 3400},
+				{date: 21, name: 623, qvontity: 4, distanse: 4500},
+				{date: 22, name: 523, qvontity: 8, distanse: 6000},
+				{date: 23, name: 622, qvontity: 3, distanse: 4500},
+				{date: 24, name: 356, qvontity: 3, distanse: 6220},
+				{date: 25, name: 132, qvontity: 4, distanse: 6220},
+				{date: 26, name: 121, qvontity: 4, distanse: 6220},
+				{date: 27, name: 245, qvontity: 7, distanse: 6220},
+				{date: 28, name: 145, qvontity: 2, distanse: 6220},
+				{date: 29, name: 325, qvontity: 6, distanse: 6220},
+				{date: 30, name: 425, qvontity: 5, distanse: 6220},
+				{date: 31, name: 155, qvontity: 3, distanse: 6220},
 			],
 		}
 	},
 	created (){
-		this.group();
+		this.reset();
 	},
-	
-	methods: {
-		group() {
-			this.part = [];
-			for (let i = this.pagin; i <= (this.pagin + 1); i++ ) {
-				this.part.push(this.schedule[i]);
-			}
+	computed:{
+		part() {
+			let part= [];
+			for (let i = this.pagin; i < this.pagin + 10; i++ ) {
+				if (this.resultFilter[i]){
+					part.push(this.resultFilter[i]);
+				};
+			};
+			return part;
 		},
+	},
 
+	methods: {
 		back(){
-			if(this.pagin >= 2) {
-				this.pagin -= 2;
-				this.group();
+			if (this.pagin >= 10) {
+				this.pagin -= 10;
 			};
 		},
 		next(){
-			if(this.pagin < this.schedule.length -2) {
-				this.pagin += 2;
-				this.group();
+			if (this.pagin < this.resultFilter.length - 10) {
+				this.pagin += 10;
 			};
+		},
+		applyFilter(){
+			if( this.valueToFilter === '' || this.param === ' ' || this.op === ' '){
+				return alert('Фильтр не заполнен');
+			};
+			if (this.op === '<'){
+				this.resultFilter = this.schedule.filter(item => item[this.param] < this.valueToFilter);
+			} else if (this.op === '='){
+				this.resultFilter = this.schedule.filter(item => +item[this.param] === +this.valueToFilter);
+			} else if (this.op === '>'){
+				this.resultFilter = this.schedule.filter(item =>item[this.param] > this.valueToFilter);
+			};
+			this.res = true;
+		},
+		reset(){
+			this.resultFilter = this.schedule.filter(item => true);
+			this.res = false;
 		},
 	}
 }
@@ -75,7 +143,7 @@ export default {
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
-	border-collapse: collapse;
+	
 	border-right: 1px solid black;
 }
 .table__title{
@@ -106,6 +174,12 @@ export default {
 	padding-left: 15px;
 }
 
+.filter{
+	width: 800px;
+	justify-content: space-around;
+	display: flex;
+	margin-bottom: 40px;
+}
 
 
 </style>
